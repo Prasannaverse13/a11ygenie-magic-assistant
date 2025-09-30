@@ -24,22 +24,54 @@ export interface StoryblokContent {
 
 export async function fetchStoryblokContent(): Promise<StoryblokContent[]> {
   try {
-    const response = await fetch(
-      `https://api.storyblok.com/v2/cdn/stories?token=${STORYBLOK_TOKEN}&version=published&per_page=100`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    const stories: StoryblokContent[] = [];
+    
+    // Fetch the home story specifically
+    try {
+      const homeResponse = await fetch(
+        `https://api.storyblok.com/v2/cdn/stories/home?token=${STORYBLOK_TOKEN}&version=published`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      if (homeResponse.ok) {
+        const homeData = await homeResponse.json();
+        if (homeData.story) {
+          stories.push(homeData.story);
+          console.log('✅ Fetched "home" story from Storyblok');
+        }
       }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Storyblok API error: ${response.status}`);
+    } catch (error) {
+      console.warn('Could not fetch home story:', error);
+    }
+    
+    // Also try to fetch all stories
+    try {
+      const allResponse = await fetch(
+        `https://api.storyblok.com/v2/cdn/stories?token=${STORYBLOK_TOKEN}&version=published&per_page=100`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      if (allResponse.ok) {
+        const allData = await allResponse.json();
+        if (allData.stories && allData.stories.length > 0) {
+          stories.push(...allData.stories);
+          console.log(`✅ Fetched ${allData.stories.length} additional stories from Storyblok`);
+        }
+      }
+    } catch (error) {
+      console.warn('Could not fetch all stories:', error);
     }
 
-    const data = await response.json();
-    console.log(`✅ Fetched ${data.stories.length} stories from Storyblok`);
-    return data.stories as StoryblokContent[];
+    console.log(`✅ Total Storyblok stories loaded: ${stories.length}`);
+    return stories as StoryblokContent[];
   } catch (error) {
     console.error("❌ Error fetching Storyblok content:", error);
     return [];
