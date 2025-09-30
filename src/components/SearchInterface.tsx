@@ -3,9 +3,9 @@ import { Search, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { algoliasearch } from "algoliasearch";
+import { liteClient } from "algoliasearch/lite";
 
-const searchClient = algoliasearch('TN67USW4JI', 'd63f17ac9614dcbc1fb080b300967367');
+const searchClient = liteClient('TN67USW4JI', 'd63f17ac9614dcbc1fb080b300967367');
 
 interface SearchResult {
   objectID: string;
@@ -30,7 +30,7 @@ const SearchInterface = () => {
     const searchTimeout = setTimeout(async () => {
       setSearching(true);
       try {
-        const response = await searchClient.search({
+        const response: any = await searchClient.search({
           requests: [
             {
               indexName: 'prod_a11ygenie',
@@ -40,9 +40,7 @@ const SearchInterface = () => {
           ],
         });
         
-        const hits = 'results' in response && response.results[0] && 'hits' in response.results[0] 
-          ? response.results[0].hits 
-          : [];
+        const hits = response.results?.[0]?.hits || [];
         setResults(hits as SearchResult[]);
       } catch (error) {
         console.error('Search error:', error);
