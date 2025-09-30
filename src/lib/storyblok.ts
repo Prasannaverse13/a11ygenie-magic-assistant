@@ -1,16 +1,5 @@
-import { apiPlugin, storyblokInit, StoryblokClient } from "@storyblok/react";
-
-// Initialize Storyblok
-storyblokInit({
-  accessToken: "YOUR_STORYBLOK_PREVIEW_TOKEN", // Replace with actual token
-  use: [apiPlugin],
-  apiOptions: {
-    region: "us", // or "eu" depending on your space
-  },
-});
-
-// For demo purposes, we'll use null and handle it in the fetch function
-export const storyblokApi: StoryblokClient | null = null;
+// Storyblok Content Delivery API integration
+const STORYBLOK_TOKEN = "0O6ZxQpRTS9AkqywIUJfLQtt";
 
 export interface StoryblokContent {
   id: number;
@@ -33,17 +22,26 @@ export interface StoryblokContent {
   published_at: string;
 }
 
-export async function fetchStoryblokContent() {
-  // For demo/development, return empty array
-  // In production, implement actual Storyblok API calls
-  console.log("Storyblok content fetch - using demo data instead");
-  
-  // TODO: Implement actual Storyblok API integration
-  // const { data } = await storyblokApi.get("cdn/stories", {
-  //   version: "published",
-  //   per_page: 100,
-  // });
-  // return data.stories as StoryblokContent[];
-  
-  return [];
+export async function fetchStoryblokContent(): Promise<StoryblokContent[]> {
+  try {
+    const response = await fetch(
+      `https://api.storyblok.com/v2/cdn/stories?token=${STORYBLOK_TOKEN}&version=published&per_page=100`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Storyblok API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ Fetched ${data.stories.length} stories from Storyblok`);
+    return data.stories as StoryblokContent[];
+  } catch (error) {
+    console.error("❌ Error fetching Storyblok content:", error);
+    return [];
+  }
 }
