@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { liteClient } from "algoliasearch/lite";
+import { StoryblokComponent } from "@storyblok/react";
 
 interface EnhancedResult {
   objectID: string;
@@ -549,14 +550,37 @@ Provide only the summary text, no formatting.`
                       {selectedStory.richBody.map((block: any, idx: number) => {
                         const key = block._uid || idx;
                         
-                        if (block.component === "text" || block.text) {
-                          return <p key={key} className="text-foreground">{block.text}</p>;
+                        // Handle "feature" component (common in Storyblok)
+                        if (block.component === "feature" && block.name) {
+                          return (
+                            <div key={key} className="text-foreground space-y-2">
+                              <p className="leading-relaxed">{block.name}</p>
+                              {block.text && <p className="text-muted-foreground">{block.text}</p>}
+                            </div>
+                          );
                         }
                         
+                        // Handle standard text blocks
+                        if (block.component === "text" || block.text) {
+                          return <p key={key} className="text-foreground leading-relaxed">{block.text || block.name}</p>;
+                        }
+                        
+                        // Handle headline blocks
                         if (block.component === "headline" || block.headline) {
                           return <h2 key={key} className="text-xl font-bold text-foreground mt-4">{block.headline}</h2>;
                         }
                         
+                        // Handle teaser component
+                        if (block.component === "teaser" && (block.headline || block.text)) {
+                          return (
+                            <div key={key} className="bg-accent/10 p-4 rounded-lg border-l-4 border-primary">
+                              {block.headline && <h3 className="font-semibold mb-2">{block.headline}</h3>}
+                              {block.text && <p className="text-muted-foreground">{block.text}</p>}
+                            </div>
+                          );
+                        }
+                        
+                        // Handle image blocks
                         if (block.component === "image" && block.image) {
                           return (
                             <img 
@@ -568,12 +592,22 @@ Provide only the summary text, no formatting.`
                           );
                         }
                         
+                        // Handle richtext blocks
                         if (block.component === "richtext" && block.content) {
                           return <div key={key} className="text-foreground" dangerouslySetInnerHTML={{ __html: block.content }} />;
                         }
                         
-                        // Fallback for unknown block types
-                        return <div key={key} className="text-muted-foreground italic">Unsupported content block</div>;
+                        // Try to use StoryblokComponent as fallback
+                        try {
+                          return <StoryblokComponent blok={block} key={key} />;
+                        } catch {
+                          // If block has a name field, show it
+                          if (block.name) {
+                            return <p key={key} className="text-foreground">{block.name}</p>;
+                          }
+                          // Last resort fallback
+                          return <div key={key} className="text-muted-foreground italic text-sm">Content block: {block.component}</div>;
+                        }
                       })}
                     </div>
                   </div>
