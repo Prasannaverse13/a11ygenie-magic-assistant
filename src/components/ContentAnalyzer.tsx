@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, CheckCircle2, AlertCircle, Info } from "lucide-react";
+import { Loader2, Sparkles, CheckCircle2, AlertCircle, Info, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface AnalysisResult {
   score: number;
@@ -22,6 +23,7 @@ const ContentAnalyzer = () => {
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const analyzeContent = async () => {
     if (!content.trim()) {
@@ -36,16 +38,21 @@ const ContentAnalyzer = () => {
     setAnalyzing(true);
     
     try {
-      // Call Gemini AI to analyze accessibility
+      // Call Gemini AI directly
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gemini-ai`,
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'X-goog-api-key': 'AIzaSyDWCgAHBZJFyyLJLMDkbxafv9ssJ4hfu2E',
           },
           body: JSON.stringify({
-            text: `Analyze the following content for accessibility issues and provide a score (0-100), specific issues (categorize as error, warning, or info), and suggestions for improvement. Also, if there's an image URL provided, generate appropriate alt text.
+            contents: [
+              {
+                parts: [
+                  {
+                    text: `Analyze the following content for accessibility issues and provide a score (0-100), specific issues (categorize as error, warning, or info), and suggestions for improvement. Also, if there's an image URL provided, generate appropriate alt text.
 
 Content: ${content}
 ${imageUrl ? `Image URL: ${imageUrl}` : ''}
@@ -57,11 +64,19 @@ ISSUES:
 SUGGESTIONS:
 - [suggestion]
 ${imageUrl ? 'ALT_TEXT: [generated alt text]' : ''}`
+                  }
+                ]
+              }
+            ]
           }),
         }
       );
 
-      if (!response.ok) throw new Error('Analysis failed');
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Gemini API error:', errorData);
+        throw new Error('Analysis failed');
+      }
       
       const data = await response.json();
       const aiResponse = data.candidates[0].content.parts[0].text;
@@ -132,6 +147,15 @@ ${imageUrl ? 'ALT_TEXT: [generated alt text]' : ''}`
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background py-12 px-4">
       <div className="max-w-4xl mx-auto">
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/')}
+          className="mb-6 hover:bg-primary/10"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Home
+        </Button>
+
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Content Accessibility Analyzer

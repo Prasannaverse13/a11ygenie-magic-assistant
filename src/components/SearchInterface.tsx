@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { Search, Sparkles } from "lucide-react";
+import { Search, Sparkles, ArrowLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { liteClient } from "algoliasearch/lite";
+import { useNavigate } from "react-router-dom";
 
 const searchClient = liteClient('TN67USW4JI', 'd63f17ac9614dcbc1fb080b300967367');
 
@@ -20,6 +22,7 @@ const SearchInterface = () => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!query.trim()) {
@@ -76,6 +79,15 @@ const SearchInterface = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background py-12 px-4">
       <div className="max-w-4xl mx-auto">
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/')}
+          className="mb-6 hover:bg-primary/10"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Home
+        </Button>
+
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
             Smart Content Search
