@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ArrowLeft, Sparkles, CheckCircle2, AlertCircle, Search as SearchIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { generateDemoData } from "@/services/contentIndexer";
+import { liteClient } from "algoliasearch/lite";
 
 interface EnhancedResult {
   objectID: string;
@@ -34,16 +34,58 @@ const EnhancedSearchInterface = () => {
   const [results, setResults] = useState<EnhancedResult[]>([]);
   const [enhancing, setEnhancing] = useState(false);
 
-  // Load demo data
-  const allResults = generateDemoData();
+  // Algolia client
+  const searchClient = useMemo(() => liteClient('TN67USW4JI', 'd63f17ac9614dcbc1fb080b300967367'), []);
 
+  // Results from Algolia
+  const [allResults, setAllResults] = useState<EnhancedResult[]>([]);
+  
   // Extract unique types and tags for filters
-  const allTypes = Array.from(new Set(allResults.map(r => r.type)));
-  const allTags = Array.from(new Set(allResults.flatMap(r => r.tags || [])));
+  const allTypes = useMemo(() => Array.from(new Set(allResults.map(r => r.type))).filter(Boolean), [allResults]);
+  const allTags = useMemo(() => Array.from(new Set(allResults.flatMap(r => r.tags || []))).filter(Boolean), [allResults]);
 
+  // Fetch Algolia results when query changes
+  useEffect(() => {
+    let active = true;
+    const run = async () => {
+      if (!searchQuery.trim()) {
+        setAllResults([]);
+        setResults([]);
+        return;
+      }
+      try {
+        const response: any = await searchClient.search({
+          requests: [
+            { indexName: 'prod_a11ygenie', query: searchQuery, hitsPerPage: 20 },
+          ],
+        });
+        const hits = (response?.results?.[0]?.hits || []) as any[];
+        const mapped: EnhancedResult[] = hits.map((h, i) => ({
+          objectID: String(h.objectID ?? i),
+          title: h.title ?? h.name ?? 'Untitled',
+          description: h.description ?? h.content ?? '',
+          type: h.type ?? h.category ?? 'Content',
+          content: h.content,
+          tags: h.tags ?? [],
+          accessibility_score: h.accessibility_score ?? h.readabilityScore ?? undefined,
+          wcag_compliant: h.wcag_compliant ?? h.isCompliant ?? undefined,
+          url: h.url ?? h.link ?? (h.full_slug ? `/${h.full_slug}` : undefined),
+          alt_text: h.alt_text ?? h.altText,
+        }));
+        if (active) setAllResults(mapped);
+      } catch (e) {
+        console.error('Algolia search error:', e);
+        if (active) setAllResults([]);
+      }
+    };
+    run();
+    return () => { active = false; };
+  }, [searchQuery, searchClient]);
+
+  // Apply filters and optional AI enhancement
   useEffect(() => {
     filterResults();
-  }, [searchQuery, onlyCompliant, selectedTypes, selectedTags, aiEnhancementEnabled]);
+  }, [searchQuery, onlyCompliant, selectedTypes, selectedTags, aiEnhancementEnabled, allResults]);
 
   const filterResults = async () => {
     let filtered = [...allResults];
@@ -150,7 +192,18 @@ Provide only the summary text, no formatting.`
     const isCompliant = hit.wcag_compliant !== undefined ? hit.wcag_compliant : score >= 80;
 
     return (
-      <Card className="p-6 hover:shadow-lg transition-all cursor-pointer group border-l-4 border-l-primary">
+      <Card
+        className="p-6 hover:shadow-lg transition-all cursor-pointer group border-l-4 border-l-primary"
+        onClick={() => hit.url && window.open(hit.url, '_blank', 'noopener')}
+        role={hit.url ? "link" : undefined}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if ((e.key === 'Enter' || e.key === ' ') && hit.url) {
+            e.preventDefault();
+            window.open(hit.url, '_blank', 'noopener');
+          }
+        }}
+      >
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
@@ -205,7 +258,15 @@ Provide only the summary text, no formatting.`
             </div>
 
             {hit.url && (
-              <Button variant="link" className="mt-3 p-0 h-auto text-primary">
+              <Button 
+                variant="link" 
+                className="mt-3 p-0 h-auto text-primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(hit.url!, '_blank', 'noopener');
+                }}
+                aria-label={`Read more about ${hit.title}`}
+              >
                 Read More →
               </Button>
             )}
