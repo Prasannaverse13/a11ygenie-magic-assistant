@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
-import { ArrowLeft, Sparkles, CheckCircle2, AlertCircle, Search as SearchIcon } from "lucide-react";
+import { ArrowLeft, Sparkles, CheckCircle2, AlertCircle, Search as SearchIcon, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { liteClient } from "algoliasearch/lite";
 
@@ -33,6 +34,7 @@ const EnhancedSearchInterface = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [results, setResults] = useState<EnhancedResult[]>([]);
   const [enhancing, setEnhancing] = useState(false);
+  const [selectedStory, setSelectedStory] = useState<EnhancedResult | null>(null);
 
   // Algolia client
   const searchClient = useMemo(() => liteClient('TN67USW4JI', 'd63f17ac9614dcbc1fb080b300967367'), []);
@@ -258,13 +260,13 @@ Provide only the summary text, no formatting.`
     return (
       <Card
         className="p-6 hover:shadow-lg transition-all cursor-pointer group border-l-4 border-l-primary"
-        onClick={() => hit.url && window.open(hit.url, '_blank', 'noopener')}
-        role={hit.url ? "link" : undefined}
+        onClick={() => setSelectedStory(hit)}
+        role="button"
         tabIndex={0}
         onKeyDown={(e) => {
-          if ((e.key === 'Enter' || e.key === ' ') && hit.url) {
+          if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            window.open(hit.url, '_blank', 'noopener');
+            setSelectedStory(hit);
           }
         }}
       >
@@ -321,19 +323,17 @@ Provide only the summary text, no formatting.`
               )}
             </div>
 
-            {hit.url && (
-              <Button 
-                variant="link" 
-                className="mt-3 p-0 h-auto text-primary"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open(hit.url!, '_blank', 'noopener');
-                }}
-                aria-label={`Read more about ${hit.title}`}
-              >
-                Read More →
-              </Button>
-            )}
+            <Button 
+              variant="link" 
+              className="mt-3 p-0 h-auto text-primary"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedStory(hit);
+              }}
+              aria-label={`Read more about ${hit.title}`}
+            >
+              View Content →
+            </Button>
           </div>
         </div>
       </Card>
@@ -493,6 +493,74 @@ Provide only the summary text, no formatting.`
             </div>
           </div>
         </div>
+
+        {/* Content Viewer Modal */}
+        <Dialog open={!!selectedStory} onOpenChange={() => setSelectedStory(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold pr-8">
+                {selectedStory?.title}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedStory && (
+              <div className="space-y-4 mt-4">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <Badge variant="outline">{selectedStory.type}</Badge>
+                  
+                  <div className="flex items-center gap-2">
+                    {selectedStory.wcag_compliant ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-yellow-500" />
+                    )}
+                    <span className="text-sm font-medium">
+                      {selectedStory.wcag_compliant ? "WCAG Compliant" : "Partially Compliant"}
+                    </span>
+                    <Badge variant="secondary" className="ml-2">
+                      Score: {selectedStory.accessibility_score || 85}
+                    </Badge>
+                  </div>
+
+                  {selectedStory.tags && selectedStory.tags.length > 0 && (
+                    <div className="flex gap-1">
+                      {selectedStory.tags.map((tag, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {selectedStory.description && (
+                  <div className="prose prose-sm max-w-none">
+                    <p className="text-muted-foreground">{selectedStory.description}</p>
+                  </div>
+                )}
+
+                {selectedStory.content && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-3">Full Content</h3>
+                    <div className="prose prose-sm max-w-none bg-muted/30 p-4 rounded-lg">
+                      <p className="whitespace-pre-wrap">{selectedStory.content}</p>
+                    </div>
+                  </div>
+                )}
+
+                {selectedStory.url && (
+                  <Button 
+                    variant="outline" 
+                    className="mt-4"
+                    onClick={() => window.open(selectedStory.url!, '_blank', 'noopener')}
+                  >
+                    Open in Storyblok →
+                  </Button>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
