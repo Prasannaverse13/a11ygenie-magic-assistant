@@ -565,8 +565,8 @@ Provide only the summary text, no formatting.`
                           return <p key={key} className="text-foreground leading-relaxed">{block.text || block.name}</p>;
                         }
                         
-                        // Handle headline blocks
-                        if (block.component === "headline" || block.headline) {
+                        // Handle headline blocks (skip if matches main title to avoid duplication)
+                        if ((block.component === "headline" || block.headline) && block.headline !== selectedStory.title) {
                           return <h2 key={key} className="text-xl font-bold text-foreground mt-4">{block.headline}</h2>;
                         }
                         
