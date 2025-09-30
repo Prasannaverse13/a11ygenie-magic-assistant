@@ -1,7 +1,7 @@
-import SearchInterface from "@/components/SearchInterface";
+import EnhancedSearchInterface from "@/components/EnhancedSearchInterface";
 
 const Search = () => {
-  return <SearchInterface />;
+  return <EnhancedSearchInterface />;
 };
 
 export default Search;
