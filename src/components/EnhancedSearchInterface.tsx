@@ -548,15 +548,6 @@ Provide only the summary text, no formatting.`
                   </div>
                 )}
 
-                {selectedStory.url && (
-                  <Button 
-                    variant="outline" 
-                    className="mt-4"
-                    onClick={() => window.open(selectedStory.url!, '_blank', 'noopener')}
-                  >
-                    Open in Storyblok →
-                  </Button>
-                )}
               </div>
             )}
           </DialogContent>
