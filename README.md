@@ -1,9 +1,5 @@
 # A11yGenie - AI-Powered Accessibility Search Platform
 
-**Live URL**: https://lovable.dev/projects/204454d3-fbfc-44b8-822b-c69304423544
-
-## 📖 About A11yGenie
-
 A11yGenie is a cutting-edge web application designed to make digital content more accessible and discoverable. By combining powerful content management, intelligent search, and AI-driven analysis, A11yGenie helps content creators and users ensure their digital content meets accessibility standards while providing an intuitive search experience.
 
 ### What Makes A11yGenie Special?
@@ -322,44 +318,6 @@ All API keys are securely configured in the project code. To use this project wi
 - Google Gemini 2.0 Flash
 - Custom AI service for accessibility analysis
 - Real-time content enhancement
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/204454d3-fbfc-44b8-822b-c69304423544) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/204454d3-fbfc-44b8-822b-c69304423544) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
 
