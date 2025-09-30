@@ -2,6 +2,18 @@
 
 **Live URL**: https://lovable.dev/projects/204454d3-fbfc-44b8-822b-c69304423544
 
+## 📖 About A11yGenie
+
+A11yGenie is a cutting-edge web application designed to make digital content more accessible and discoverable. By combining powerful content management, intelligent search, and AI-driven analysis, A11yGenie helps content creators and users ensure their digital content meets accessibility standards while providing an intuitive search experience.
+
+### What Makes A11yGenie Special?
+
+- **Smart Content Management**: Seamlessly manage and organize your content using Storyblok CMS with rich content blocks support
+- **Lightning-Fast Search**: Powered by Algolia's robust search engine for instant, relevant results
+- **AI-Powered Insights**: Leverage Google Gemini AI to analyze content accessibility, generate alt text, and provide intelligent summaries
+- **WCAG Compliance**: Built-in accessibility scoring and compliance checking against WCAG standards
+- **User-Friendly Interface**: Beautiful, responsive design with inline content viewing and advanced filtering
+
 ## 🎯 Project Overview
 
 A11yGenie is an intelligent content accessibility platform that combines:
@@ -12,15 +24,15 @@ A11yGenie is an intelligent content accessibility platform that combines:
 ## ✅ Integration Status
 
 ### Storyblok Integration
-- ✅ **Content Delivery API**: Fully integrated with token `0O6ZxQpRTS9AkqywIUJfLQtt`
-- ✅ **Management API**: Configured with token (ready for content creation)
+- ✅ **Content Delivery API**: Fully integrated (token configured)
+- ✅ **Management API**: Configured and ready for content creation
 - ✅ **SDK**: Using `@storyblok/react` for React integration
 - ✅ **Content Loading**: Stories automatically loaded and displayed in search interface
 - ✅ **Rich Content Rendering**: Full support for Storyblok content blocks (text, headlines, images, features)
 - ✅ **Inline Content Viewer**: View full story content in modal without page redirects
 
 ### Algolia Integration  
-- ✅ **Search Client**: Connected with App ID `TN67USW4JI`
+- ✅ **Search Client**: Connected and configured
 - ✅ **Search UI**: Using `algoliasearch` SDK for instant search
 - ✅ **Index**: Searching `prod_a11ygenie` index
 - ⚠️ **Crawler**: Needs setup (see Algolia dashboard to configure crawler)
@@ -139,7 +151,7 @@ supabase/
 
 ### Content Management (Storyblok)
 - **API**: Content Delivery API v2
-- **Token**: `0O6ZxQpRTS9AkqywIUJfLQtt`
+- **Token**: Configured in `src/lib/storyblok.ts`
 - **Content Types Supported**:
   - `feature`: Text content blocks with name/text fields
   - `text`: Paragraph content
@@ -152,8 +164,8 @@ supabase/
   - Duplicate headline filtering
 
 ### Search Technology (Algolia)
-- **App ID**: `TN67USW4JI`
-- **Search Key**: `d63f17ac9614dcbc1fb080b300967367`
+- **App ID**: Configured in `src/components/EnhancedSearchInterface.tsx`
+- **Search Key**: Configured in `src/components/EnhancedSearchInterface.tsx`
 - **Index**: `prod_a11ygenie`
 - **SDK**: `algoliasearch@5.39.0` (lite client)
 - **Features**: 
@@ -281,15 +293,17 @@ The application uses a comprehensive design system:
 
 ## 🔑 API Keys & Configuration
 
-All API keys are configured in the project:
+All API keys are securely configured in the project code. To use this project with your own services, you'll need to obtain and configure:
 
-```
-Storyblok Delivery API: 0O6ZxQpRTS9AkqywIUJfLQtt
-Storyblok Management API: yl1596NDIPLtzLtz4q83nwtt-96326388814558-eLKSijRmsm158oosFi6W
-Algolia App ID: TN67USW4JI
-Algolia Search Key: d63f17ac9614dcbc1fb080b300967367
-Gemini API Key: AIzaSyDWCgAHBZJFyyLJLMDkbxafv9ssJ4hfu2E
-```
+- **Storyblok Delivery API Token**: Get from [Storyblok Dashboard](https://app.storyblok.com/) → Settings → Access Tokens
+- **Storyblok Management API Token**: Get from Storyblok Dashboard for content creation features
+- **Algolia App ID & Search Key**: Get from [Algolia Dashboard](https://www.algolia.com/) → API Keys
+- **Google Gemini API Key**: Get from [Google AI Studio](https://makersuite.google.com/app/apikey)
+
+**Configuration Files:**
+- Storyblok: `src/lib/storyblok.ts`
+- Algolia: `src/components/EnhancedSearchInterface.tsx`
+- Gemini AI: `src/services/geminiService.ts`
 
 ## 🛠 Technology Stack
 
