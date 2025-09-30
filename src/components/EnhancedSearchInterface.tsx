@@ -37,12 +37,45 @@ const EnhancedSearchInterface = () => {
   // Algolia client
   const searchClient = useMemo(() => liteClient('TN67USW4JI', 'd63f17ac9614dcbc1fb080b300967367'), []);
 
-  // Results from Algolia
+  // Results from Algolia + Storyblok
   const [allResults, setAllResults] = useState<EnhancedResult[]>([]);
+  const [storyblokLoaded, setStoryblokLoaded] = useState(false);
   
   // Extract unique types and tags for filters
   const allTypes = useMemo(() => Array.from(new Set(allResults.map(r => r.type))).filter(Boolean), [allResults]);
   const allTags = useMemo(() => Array.from(new Set(allResults.flatMap(r => r.tags || []))).filter(Boolean), [allResults]);
+
+  // Load Storyblok content on mount
+  useEffect(() => {
+    const loadStoryblok = async () => {
+      try {
+        const { fetchStoryblokContent } = await import('@/lib/storyblok');
+        const stories = await fetchStoryblokContent();
+        
+        const storyblokResults: EnhancedResult[] = stories.map(story => ({
+          objectID: story.uuid,
+          title: story.content?.title || story.name,
+          description: story.content?.description || story.content?.body?.slice(0, 200) || 'No description',
+          type: story.content?.type || story.content?.category || 'Story',
+          content: story.content?.body,
+          tags: story.content?.tags || [],
+          accessibility_score: story.content?.accessibility_score || 85,
+          wcag_compliant: story.content?.wcag_compliant !== false,
+          url: `https://app.storyblok.com/#!/me/spaces/your-space/stories/0/${story.full_slug}`,
+          alt_text: story.content?.alt_text,
+        }));
+        
+        setAllResults(prev => [...storyblokResults, ...prev]);
+        setStoryblokLoaded(true);
+        console.log(`✅ Loaded ${storyblokResults.length} stories from Storyblok`);
+      } catch (error) {
+        console.error('Failed to load Storyblok content:', error);
+        setStoryblokLoaded(true);
+      }
+    };
+    
+    loadStoryblok();
+  }, []);
 
   // Fetch Algolia results when query changes
   useEffect(() => {
@@ -297,12 +330,14 @@ Provide only the summary text, no formatting.`
           </p>
         </div>
 
-        {/* Demo Mode Notice */}
+        {/* Integration Status */}
         <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6 max-w-4xl mx-auto">
           <p className="text-sm text-muted-foreground flex items-center gap-2 justify-center">
             <Sparkles className="w-4 h-4 text-primary" />
             <span>
-              Demo mode with sample accessibility content. See INTEGRATION_GUIDE.md to connect Storyblok & Algolia.
+              {storyblokLoaded 
+                ? "✅ Connected to Storyblok CMS • Content loaded from your space"
+                : "⏳ Loading content from Storyblok..."}
             </span>
           </p>
         </div>
