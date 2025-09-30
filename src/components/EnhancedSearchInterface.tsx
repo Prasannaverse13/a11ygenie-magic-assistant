@@ -45,6 +45,33 @@ const EnhancedSearchInterface = () => {
   const allTypes = useMemo(() => Array.from(new Set(allResults.map(r => r.type))).filter(Boolean), [allResults]);
   const allTags = useMemo(() => Array.from(new Set(allResults.flatMap(r => r.tags || []))).filter(Boolean), [allResults]);
 
+  // Helper to extract text from Storyblok body blocks
+  const extractTextFromStoryblokBody = (body: any): string => {
+    if (!body) return '';
+    if (typeof body === 'string') return body;
+    
+    // Handle array of blocks
+    if (Array.isArray(body)) {
+      return body
+        .map(block => {
+          if (typeof block === 'string') return block;
+          if (block.text) return block.text;
+          if (block.headline) return block.headline;
+          if (block.content) return extractTextFromStoryblokBody(block.content);
+          return '';
+        })
+        .filter(Boolean)
+        .join(' ')
+        .slice(0, 200);
+    }
+    
+    // Handle object with text/headline
+    if (body.text) return body.text;
+    if (body.headline) return body.headline;
+    
+    return 'No description';
+  };
+
   // Load Storyblok content on mount
   useEffect(() => {
     const loadStoryblok = async () => {
@@ -52,18 +79,22 @@ const EnhancedSearchInterface = () => {
         const { fetchStoryblokContent } = await import('@/lib/storyblok');
         const stories = await fetchStoryblokContent();
         
-        const storyblokResults: EnhancedResult[] = stories.map(story => ({
-          objectID: story.uuid,
-          title: story.content?.title || story.name,
-          description: story.content?.description || story.content?.body?.slice(0, 200) || 'No description',
-          type: story.content?.type || story.content?.category || 'Story',
-          content: story.content?.body,
-          tags: story.content?.tags || [],
-          accessibility_score: story.content?.accessibility_score || 85,
-          wcag_compliant: story.content?.wcag_compliant !== false,
-          url: `https://app.storyblok.com/#!/me/spaces/your-space/stories/0/${story.full_slug}`,
-          alt_text: story.content?.alt_text,
-        }));
+        const storyblokResults: EnhancedResult[] = stories.map(story => {
+          const bodyText = extractTextFromStoryblokBody(story.content?.body);
+          
+          return {
+            objectID: story.uuid,
+            title: story.content?.title || story.name,
+            description: story.content?.description || bodyText || 'No description',
+            type: story.content?.type || story.content?.category || 'Story',
+            content: bodyText,
+            tags: story.content?.tags || [],
+            accessibility_score: story.content?.accessibility_score || 85,
+            wcag_compliant: story.content?.wcag_compliant !== false,
+            url: `https://app.storyblok.com/#!/me/spaces/your-space/stories/0/${story.full_slug}`,
+            alt_text: story.content?.alt_text,
+          };
+        });
         
         setAllResults(prev => [...storyblokResults, ...prev]);
         setStoryblokLoaded(true);
