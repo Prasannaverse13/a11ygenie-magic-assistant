@@ -23,6 +23,7 @@ interface EnhancedResult {
   alt_text?: string;
   aiEnhanced?: boolean;
   aiSummary?: string;
+  richBody?: any[]; // Store original Storyblok body blocks
 }
 
 const EnhancedSearchInterface = () => {
@@ -83,6 +84,7 @@ const EnhancedSearchInterface = () => {
         
         const storyblokResults: EnhancedResult[] = stories.map(story => {
           const bodyText = extractTextFromStoryblokBody(story.content?.body);
+          const richBody = Array.isArray(story.content?.body) ? story.content.body : [];
           
           return {
             objectID: story.uuid,
@@ -95,6 +97,7 @@ const EnhancedSearchInterface = () => {
             wcag_compliant: story.content?.wcag_compliant !== false,
             url: `https://app.storyblok.com/#!/me/spaces/your-space/stories/0/${story.full_slug}`,
             alt_text: story.content?.alt_text,
+            richBody, // Store the rich body blocks
           };
         });
         
@@ -539,11 +542,46 @@ Provide only the summary text, no formatting.`
                   </div>
                 )}
 
-                {selectedStory.content && (
+{selectedStory.richBody && selectedStory.richBody.length > 0 ? (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-3">Full Content</h3>
+                    <div className="prose prose-sm max-w-none bg-muted/30 p-4 rounded-lg space-y-4">
+                      {selectedStory.richBody.map((block: any, idx: number) => {
+                        const key = block._uid || idx;
+                        
+                        if (block.component === "text" || block.text) {
+                          return <p key={key} className="text-foreground">{block.text}</p>;
+                        }
+                        
+                        if (block.component === "headline" || block.headline) {
+                          return <h2 key={key} className="text-xl font-bold text-foreground mt-4">{block.headline}</h2>;
+                        }
+                        
+                        if (block.component === "image" && block.image) {
+                          return (
+                            <img 
+                              key={key} 
+                              src={block.image} 
+                              alt={block.alt || "Content image"} 
+                              className="rounded-lg max-w-full"
+                            />
+                          );
+                        }
+                        
+                        if (block.component === "richtext" && block.content) {
+                          return <div key={key} className="text-foreground" dangerouslySetInnerHTML={{ __html: block.content }} />;
+                        }
+                        
+                        // Fallback for unknown block types
+                        return <div key={key} className="text-muted-foreground italic">Unsupported content block</div>;
+                      })}
+                    </div>
+                  </div>
+                ) : selectedStory.content && (
                   <div className="mt-6">
                     <h3 className="text-lg font-semibold mb-3">Full Content</h3>
                     <div className="prose prose-sm max-w-none bg-muted/30 p-4 rounded-lg">
-                      <p className="whitespace-pre-wrap">{selectedStory.content}</p>
+                      <p className="whitespace-pre-wrap text-foreground">{selectedStory.content}</p>
                     </div>
                   </div>
                 )}
