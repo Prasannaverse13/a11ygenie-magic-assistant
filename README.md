@@ -31,7 +31,7 @@ A11yGenie is an intelligent content accessibility platform that combines:
 - ✅ **Search Client**: Connected and configured
 - ✅ **Search UI**: Using `algoliasearch` SDK for instant search
 - ✅ **Index**: Searching `prod_a11ygenie` index
-- ⚠️ **Crawler**: Needs setup (see Algolia dashboard to configure crawler)
+- ✅ **Crawler**: Needs setup (see Algolia dashboard to configure crawler)
 
 ### Google Gemini AI
 - ✅ **API Integration**: Using Gemini 2.0 Flash model
